@@ -2,41 +2,83 @@
 
 **Stop manual data entry. Turn receipt photos into structured expense data – with AI, a human review step, and a live dashboard.**
 
-Upload a picture of any receipt. Receipt AI uses computer vision + a language model to extract the merchant, date, line items, totals, and category. You get an editable form to fix anything the AI missed, then one click saves the record to CSV/JSON – with the original image stored permanently.
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**What you can do with it:**
-- 📸 Upload receipt images (PNG, JPG, JPEG, GIF)
-- 🤖 AI extracts merchant, date, amounts, category, and more
-- ✏️ Review and edit any field before saving
-- 📊 Explore your spending with filters, charts, and an exportable table
-- 💾 All data saved as CSV + JSON, images stored forever
+---
 
-**Built with:** Flask, Novita AI (Vision + Text), Chart.js
+## 🚀 What it does
 
+Upload a picture of any receipt. Receipt AI uses a **vision model** to read the text and a **language model** to extract:
 
-Make sure to create .env with your NOVITA API
-NOVITA_API_KEY=
-PORT=
+- Merchant name  
+- Date & time  
+- Subtotal, tax, total  
+- Payment method  
+- Expense category (Food, Transport, etc.)
 
-SECRET_KEY=your-random-hex-string
+You get an **editable form** to correct anything the AI missed, then **one click** saves the record to CSV and JSON – with the original image stored permanently.
 
-AI Will transform Ugly into organize dashboard
+---
 
-<img width="487" height="622" alt="image" src="https://github.com/user-attachments/assets/08f6b214-8f25-4241-bf45-f5041edde060" />
+## ✨ Features
 
+| Feature | Description |
+| :--- | :--- |
+| 📸 **Upload** | Supports PNG, JPG, JPEG, GIF – drag and drop or select. |
+| 🤖 **AI extraction** | Powered by Novita AI (Vision + DeepSeek V3.2) – reliable and cheap. |
+| ✏️ **Human review** | Edit any field before saving – no more silent AI errors. |
+| 📊 **Dashboard** | Filter by date, category, merchant; view charts and table; export filtered data as JSON. |
+| 💾 **Permanent storage** | Receipt images kept forever in `images/`; data stored as both CSV and individual JSON files. |
+| 🔒 **Duplicate prevention** | Automatically rejects identical receipts. |
+| 🧹 **Session expiry** | Draft data self‑destructs after 30 minutes. |
 
-<img width="1253" height="567" alt="image" src="https://github.com/user-attachments/assets/42edc840-55c7-453b-b935-7552d67927e6" />
+---
 
+## 🖼️ Screenshots
 
-<img width="1180" height="968" alt="image" src="https://github.com/user-attachments/assets/73023dd8-cc57-4299-826e-de5103a9c391" />
+### 1. Upload & AI extraction
+<img width="600" alt="Upload page" src="https://github.com/user-attachments/assets/08f6b214-8f25-4241-bf45-f5041edde060" />
 
+### 2. Review & edit form
+<img width="600" alt="Review form" src="https://github.com/user-attachments/assets/42edc840-55c7-453b-b935-7552d67927e6" />
 
+### 3. Dashboard – spending by category & weekly trend
+<img width="600" alt="Dashboard charts" src="https://github.com/user-attachments/assets/73023dd8-cc57-4299-826e-de5103a9c391" />
 
+### 4. Dashboard – filterable table with thumbnails
+<img width="600" alt="Dashboard table" src="https://github.com/user-attachments/assets/9a196e00-46a0-4e5c-a2c6-f79868fae75a" />
 
+### 5. Export filtered data as JSON
+<img width="600" alt="Export" src="https://github.com/user-attachments/assets/cf5dc4cd-8b86-473f-9706-87a5ba180646" />
 
+> 💡 **From ugly receipts to an organised dashboard – in seconds.**
 
+---
 
-<img width="1870" height="1001" alt="image" src="https://github.com/user-attachments/assets/9a196e00-46a0-4e5c-a2c6-f79868fae75a" />
+## 🛠️ Tech Stack
 
+| Component | Technology |
+| :--- | :--- |
+| Backend | Flask (Python 3.10+) |
+| AI | Novita AI (OpenAI‑compatible) |
+| Vision model | `qwen/qwen3-vl-235b-a22b-instruct` |
+| Text model | `deepseek/deepseek-v3.2` |
+| Charts | Chart.js |
+| Data storage | CSV + JSON |
+| Image storage | Local filesystem (`images/`) |
 
-<img width="1796" height="918" alt="image" src="https://github.com/user-attachments/assets/cf5dc4cd-8b86-473f-9706-87a5ba180646" />
+---
+
+## 📦 Installation & Setup
+
+### Prerequisites
+- Python 3.10 or higher
+- A [Novita AI](https://novita.ai) account (get an API key)
+- Git (optional, for cloning)
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/carlosgandara/Receipt-AI-app.git
+cd Receipt-AI-app
