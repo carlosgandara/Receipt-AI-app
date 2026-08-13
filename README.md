@@ -19,3 +19,7 @@ NOVITA_API_KEY=
 PORT=
 
 SECRET_KEY=your-random-hex-string
+
+
+<img width="1870" height="1001" alt="image" src="https://github.com/user-attachments/assets/9a196e00-46a0-4e5c-a2c6-f79868fae75a" />
+
