@@ -20,6 +20,23 @@ PORT=
 
 SECRET_KEY=your-random-hex-string
 
+AI Will transform Ugly into organize dashboard
+
+<img width="487" height="622" alt="image" src="https://github.com/user-attachments/assets/08f6b214-8f25-4241-bf45-f5041edde060" />
+
+
+<img width="1253" height="567" alt="image" src="https://github.com/user-attachments/assets/42edc840-55c7-453b-b935-7552d67927e6" />
+
+
+<img width="1180" height="968" alt="image" src="https://github.com/user-attachments/assets/73023dd8-cc57-4299-826e-de5103a9c391" />
+
+
+
+
+
+
 
 <img width="1870" height="1001" alt="image" src="https://github.com/user-attachments/assets/9a196e00-46a0-4e5c-a2c6-f79868fae75a" />
 
+
+<img width="1796" height="918" alt="image" src="https://github.com/user-attachments/assets/cf5dc4cd-8b86-473f-9706-87a5ba180646" />
