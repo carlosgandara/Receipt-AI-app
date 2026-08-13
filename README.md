@@ -12,3 +12,10 @@ Upload a picture of any receipt. Receipt AI uses computer vision + a language mo
 - 💾 All data saved as CSV + JSON, images stored forever
 
 **Built with:** Flask, Novita AI (Vision + Text), Chart.js
+
+
+Make sure to create .env with your NOVITA API
+NOVITA_API_KEY=
+PORT=
+
+SECRET_KEY=your-random-hex-string
