@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Extracted Data</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 750px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .warning {
+            background: #fff3cd;
+            padding: 12px 16px;
+            border-left: 5px solid #ffc107;
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+        }
+        .field {
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        label {
+            width: 140px;
+            font-weight: 600;
+            color: #333;
+        }
+        .required { color: #dc3545; margin-left: 4px; }
+        input, select {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+        }
+        .actions {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: #28a745;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover:not(:disabled) { background: #218838; }
+        .btn-primary:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        .btn-secondary:hover { background: #5a6268; }
+        .flash {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 4px solid #f5c6cb;
+            margin: 1rem 0;
+        }
+        .field-readonly {
+            background: #e9ecef;
+            color: #495057;
+            padding: 8px 12px;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+        small.hint { color: #6c757d; font-size: 0.85rem; margin-left: 145px; display: block; }
+    </style>
+</head>
+<body>
+    <h2>✏️ Review & Edit Extracted Information</h2>
+    
+    <div class="warning">
+        <strong>⏳ This draft expires in 30 minutes.</strong> Please review and save before it expires.
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash">
+                {% for msg in messages %}
+                    <p>{{ msg }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="post" action="/confirm" id="reviewForm" onsubmit="disableButton()">
+        <input type="hidden" name="token" value="{{ token }}">
+
+        <div class="field">
+            <label for="merchant">Merchant</label>
+            <input type="text" id="merchant" name="merchant" value="{{ data.merchant or '' }}" placeholder="e.g. Shell, Walmart">
+        </div>
+
+        <div class="field">
+            <label for="date">Date <span class="required">*</span></label>
+            <input type="date" id="date" name="date" value="{{ data.date or '' }}" required>
+        </div>
+
+        <div class="field">
+            <label for="time">Time</label>
+            <input type="text" id="time" name="time" value="{{ data.time or '' }}" placeholder="e.g. 14:30 or 2:30 PM">
+        </div>
+
+        <div class="field">
+            <label for="subtotal">Subtotal ($)</label>
+            <input type="number" id="subtotal" name="subtotal" value="{{ data.subtotal or '' }}" step="0.01" min="0" placeholder="0.00">
+        </div>
+
+        <div class="field">
+            <label for="tax">Tax ($)</label>
+            <input type="number" id="tax" name="tax" value="{{ data.tax or '' }}" step="0.01" min="0" placeholder="0.00">
+        </div>
+
+        <div class="field">
+            <label for="total">Total ($) <span class="required">*</span></label>
+            <input type="number" id="total" name="total" value="{{ data.total or '' }}" step="0.01" min="0" required placeholder="0.00">
+        </div>
+
+        <div class="field">
+            <label for="payment_method">Payment Method</label>
+            <input type="text" id="payment_method" name="payment_method" value="{{ data.payment_method or '' }}" placeholder="e.g. Visa, Cash, Shell Card">
+        </div>
+
+        <div class="field">
+            <label for="category">Category <span class="required">*</span></label>
+            <select id="category" name="category" required>
+                <option value="FOOD" {% if data.category == 'FOOD' %}selected{% endif %}>🍔 FOOD</option>
+                <option value="TRANSPORTATION" {% if data.category == 'TRANSPORTATION' %}selected{% endif %}>🚗 TRANSPORTATION</option>
+                <option value="HOUSING" {% if data.category == 'HOUSING' %}selected{% endif %}>🏠 HOUSING</option>
+                <option value="HEALTHCARE" {% if data.category == 'HEALTHCARE' %}selected{% endif %}>🏥 HEALTHCARE</option>
+                <option value="ENTERTAINMENT" {% if data.category == 'ENTERTAINMENT' %}selected{% endif %}>🎬 ENTERTAINMENT</option>
+                <option value="SHOPPING" {% if data.category == 'SHOPPING' %}selected{% endif %}>🛍️ SHOPPING</option>
+                <option value="EDUCATION" {% if data.category == 'EDUCATION' %}selected{% endif %}>📚 EDUCATION</option>
+                <option value="PERSONAL_CARE" {% if data.category == 'PERSONAL_CARE' %}selected{% endif %}>💆 PERSONAL_CARE</option>
+                <option value="TRAVEL" {% if data.category == 'TRAVEL' %}selected{% endif %}>✈️ TRAVEL</option>
+                <option value="INSURANCE" {% if data.category == 'INSURANCE' %}selected{% endif %}>🛡️ INSURANCE</option>
+                <option value="OTHER" {% if data.category == 'OTHER' or data.category not in ['FOOD','TRANSPORTATION','HOUSING','HEALTHCARE','ENTERTAINMENT','SHOPPING','EDUCATION','PERSONAL_CARE','TRAVEL','INSURANCE'] %}selected{% endif %}>❓ OTHER</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Raw Description</label>
+            <div class="field-readonly" style="max-height:80px; overflow-y:auto; background:#f1f3f5; padding:8px; border-radius:5px;">
+                <small style="color:#495057;">{{ data.raw_description[:300] }}{% if data.raw_description|length > 300 %}…{% endif %}</small>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="btn-primary" id="saveBtn">✅ Accept & Save</button>
+            <a href="{{ url_for('index') }}" class="btn-secondary">🗑️ Cancel</a>
+        </div>
+    </form>
+
+    <script>
+        function disableButton() {
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+            // Re-enable after 10 seconds in case of network error (optional)
+            setTimeout(() => {
+                if (btn.disabled) {
+                    btn.disabled = false;
+                    btn.textContent = '✅ Accept & Save';
+                }
+            }, 10000);
+        }
+    </script>
+</body>
+</html>

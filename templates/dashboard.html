@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Receipt Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { color: #333; }
+        .card { background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        .filter-form { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; }
+        .filter-form .form-group { flex: 1 1 200px; }
+        .filter-form label { display: block; font-weight: 600; margin-bottom: 5px; }
+        .filter-form input, .filter-form select { width: 100%; padding: 8px 10px; border: 1px solid #ced4da; border-radius: 5px; }
+        .filter-form button { background: #007bff; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; }
+        .filter-form button:hover { background: #0056b3; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .summary-card { background: white; border-radius: 8px; padding: 15px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border-left: 4px solid #007bff; }
+        .summary-card .number { font-size: 2rem; font-weight: bold; color: #333; }
+        .summary-card .label { font-size: 0.9rem; color: #6c757d; }
+        .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background: #f8f9fa; }
+        .thumbnail { width: 50px; height: auto; cursor: pointer; border-radius: 4px; }
+        .actions { margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; }
+        .btn { display: inline-block; padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-secondary a { color: white; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📊 Receipt Dashboard</h1>
+
+    <!-- Filter Form -->
+    <div class="card">
+        <form method="get" action="/dashboard" class="filter-form">
+            <div class="form-group">
+                <label for="start_date">From</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+            </div>
+            <div class="form-group">
+                <label for="end_date">To</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+            </div>
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    <option value="ALL">All</option>
+                    {% for cat in ['FOOD','TRANSPORTATION','HOUSING','HEALTHCARE','ENTERTAINMENT','SHOPPING','EDUCATION','PERSONAL_CARE','TRAVEL','INSURANCE','OTHER'] %}
+                        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="merchant">Merchant</label>
+                <input type="text" id="merchant" name="merchant" placeholder="Search..." value="{{ selected_merchant }}">
+            </div>
+            <div class="form-group">
+                <button type="submit">🔍 Filter</button>
+                <a href="/dashboard" class="btn btn-secondary" style="padding: 8px 16px; margin-left: 10px;">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        <div class="summary-card"><div class="number">{{ total_receipts }}</div><div class="label">Receipts</div></div>
+        <div class="summary-card"><div class="number">${{ "%.2f"|format(total_spent) }}</div><div class="label">Total Spent</div></div>
+        <div class="summary-card"><div class="number">${{ "%.2f"|format(avg_spent) }}</div><div class="label">Average</div></div>
+        {% if max_receipt %}
+        <div class="summary-card"><div class="number">${{ "%.2f"|format(max_receipt.total) }}</div><div class="label">Largest: {{ max_receipt.merchant or 'N/A' }}</div></div>
+        {% endif %}
+        {% if min_receipt %}
+        <div class="summary-card"><div class="number">${{ "%.2f"|format(min_receipt.total) }}</div><div class="label">Smallest: {{ min_receipt.merchant or 'N/A' }}</div></div>
+        {% endif %}
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-row">
+        <div class="card">
+            <h3>💰 by Category</h3>
+            <canvas id="categoryChart" width="400" height="250"></canvas>
+        </div>
+        <div class="card">
+            <h3>📈 Weekly Spending</h3>
+            <canvas id="weeklyChart" width="400" height="250"></canvas>
+        </div>
+    </div>
+
+    <!-- Receipt List -->
+    <div class="card">
+        <h3>📋 Receipts ({{ records|length }})</h3>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr><th>Image</th><th>Merchant</th><th>Date</th><th>Total</th><th>Category</th><th>Payment</th></tr>
+                </thead>
+                <tbody>
+                {% for rec in records %}
+                    <tr>
+                        <td>
+                            {% if rec.image_path %}
+                                <a href="{{ rec.image_path }}" target="_blank"><img src="{{ rec.image_path }}" class="thumbnail" alt="receipt"></a>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>{{ rec.merchant or '—' }}</td>
+                        <td>{{ rec.date or '—' }}</td>
+                        <td>${{ "%.2f"|format(rec.total|default(0)) }}</td>
+                        <td>{{ rec.category or 'OTHER' }}</td>
+                        <td>{{ rec.payment_method or '—' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Export -->
+    <div class="actions">
+        <button class="btn" id="exportBtn">📥 Export Filtered Data (JSON)</button>
+        <a href="/" class="btn btn-secondary">🏠 Home</a>
+    </div>
+</div>
+
+<!-- Chart data as JSON (ignored by JavaScript linter) -->
+<script id="chartData" type="application/json">
+{{ chart_data_json | safe }}
+</script>
+
+<!-- Main JavaScript (no Jinja tags inside) -->
+<script>
+    // Read chart data from the JSON script block
+    const chartData = JSON.parse(document.getElementById('chartData').textContent);
+
+    // Category Chart
+    new Chart(document.getElementById('categoryChart'), {
+        type: 'bar',
+        data: {
+            labels: chartData.categories,
+            datasets: [{
+                label: 'Total Spent ($)',
+                data: chartData.cat_values,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Weekly Chart
+    new Chart(document.getElementById('weeklyChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.dates,
+            datasets: [{
+                label: 'Weekly Spending ($)',
+                data: chartData.weekly_totals,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+    });
+
+    // Export
+    document.getElementById('exportBtn').addEventListener('click', function() {
+        const params = new URLSearchParams(window.location.search);
+        fetch('/export?' + params.toString())
+            .then(res => res.json())
+            .then(data => {
+                const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'filtered_receipts.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            })
+            .catch(err => alert('Export failed: ' + err));
+    });
+</script>
+</body>
+</html>

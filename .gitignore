@@ -1,0 +1,26 @@
+# Environment & secrets
+.env
+*.pyc
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Temporary & uploaded files
+uploads/
+images/
+results/
+results_clean/
+
+# CSV & other data (if you want to keep them local only)
+*.csv
+*.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs
+*.log
