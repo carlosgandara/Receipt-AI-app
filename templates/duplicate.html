@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Duplicate Receipt</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+        .warning { background: #fff3cd; border: 1px solid #ffeeba; padding: 1.5rem; border-radius: 5px; }
+        .actions { margin-top: 1.5rem; }
+        .actions a { display: inline-block; margin-right: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; text-decoration: none; border-radius: 3px; }
+        .actions a.secondary { background: #6c757d; }
+    </style>
+</head>
+<body>
+    <h1>⚠️ Receipt Already Exists</h1>
+    <div class="warning">
+        <p>This receipt appears to be already saved in your database.</p>
+        <p><strong>Duplicate detected.</strong> No new record was created.</p>
+        <p>If you believe this is a mistake, please check the dashboard for the existing entry.</p>
+    </div>
+    <div class="actions">
+        <a href="/">Upload Another</a>
+        <a href="/dashboard" class="secondary">View Dashboard</a>
+    </div>
+</body>
+</html>

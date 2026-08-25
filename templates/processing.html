@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Processing...</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; text-align: center; }
+        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid #007bff; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 2rem auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>⏳ AI is reading your receipt...</h1>
+    <div class="spinner"></div>
+    <p id="status">Please wait, this may take up to 15 seconds.</p>
+    <div id="error" class="error" style="display:none;"></div>
+
+    <script>
+        const token = "{{ token }}";
+        let attempts = 0;
+
+        function checkStatus() {
+            fetch(`/status/${token}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'complete') {
+                        window.location.href = data.redirect;
+                    } else if (data.status === 'duplicate') {   // <-- ADD THIS
+                        window.location.href = data.redirect;
+                    } else if (data.status === 'error') {
+                        document.getElementById('status').textContent = '❌ Error processing receipt.';
+                        document.getElementById('error').textContent = data.error || 'Unknown error';
+                        document.getElementById('error').style.display = 'block';
+                    } else {
+                        // still processing
+                        attempts++;
+                        document.getElementById('status').textContent = `Processing... (${attempts})`;
+                        setTimeout(checkStatus, 3000);
+                    }
+                })
+                .catch(() => {
+                    // network error – retry anyway
+                    setTimeout(checkStatus, 5000);
+                });
+        }
+
+        // start polling after 2 seconds
+        setTimeout(checkStatus, 2000);
+    </script>
+</body>
+</html>

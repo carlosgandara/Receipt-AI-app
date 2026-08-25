@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 1200px; margin: 2rem auto; padding: 1rem; }
+        .summary { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .card { background: #f8f9fa; padding: 1rem 2rem; border-radius: 5px; min-width: 120px; }
+        .card h3 { margin: 0; font-size: 0.9rem; color: #666; }
+        .card .value { font-size: 1.5rem; font-weight: bold; }
+        .filters { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; align-items: end; }
+        .filters label { display: block; font-size: 0.8rem; }
+        .charts { display: flex; flex-wrap: wrap; gap: 2rem; }
+        .charts canvas { max-height: 250px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+        th { background: #f2f2f2; }
+        .thumbnail { max-width: 60px; max-height: 60px; cursor: pointer; }
+        .actions { margin: 1rem 0; }
+        .actions a { background: #007bff; color: white; padding: 0.5rem 1rem; text-decoration: none; border-radius: 3px; display: inline-block; margin-right: 0.5rem; }
+        .actions a.secondary { background: #6c757d; }
+    </style>
+</head>
+<body>
+    <h1>📊 Dashboard</h1>
+    <div class="summary">
+        <div class="card"><h3>Total Receipts</h3><div class="value">{{ total_receipts }}</div></div>
+        <div class="card"><h3>Total Spent</h3><div class="value">${{ "%.2f"|format(total_spent) }}</div></div>
+        <div class="card"><h3>Average</h3><div class="value">${{ "%.2f"|format(avg_spent) }}</div></div>
+        {% if max_receipt %}
+        <div class="card"><h3>Max</h3><div class="value">${{ "%.2f"|format(max_receipt.total) }}</div></div>
+        {% endif %}
+        {% if min_receipt %}
+        <div class="card"><h3>Min</h3><div class="value">${{ "%.2f"|format(min_receipt.total) }}</div></div>
+        {% endif %}
+    </div>
+
+    <form method="get" class="filters">
+        <div><label>Start Date</label><input type="date" name="start_date" value="{{ start_date }}"></div>
+        <div><label>End Date</label><input type="date" name="end_date" value="{{ end_date }}"></div>
+        <div><label>Category</label>
+            <select name="category">
+                <option value="ALL">All</option>
+                {% set cats = ['FOOD','TRANSPORTATION','HOUSING','HEALTHCARE','ENTERTAINMENT','SHOPPING','EDUCATION','PERSONAL_CARE','TRAVEL','INSURANCE','OTHER'] %}
+                {% for c in cats %}
+                    <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div><label>Merchant</label>
+            <input type="text" name="merchant" value="{{ selected_merchant }}" placeholder="Search...">
+        </div>
+        <div><button type="submit" style="padding:0.3rem 1rem;">Filter</button></div>
+    </form>
+
+    <div class="actions">
+        <a href="/dashboard">Reset Filters</a>
+        <a href="/export{{ '?' + request.query_string.decode() if request.query_string else '' }}">⬇️ Export Filtered Data (JSON)</a>
+    </div>
+
+    <div class="charts">
+        <div style="flex:1;min-width:300px;">
+            <canvas id="barChart"></canvas>
+        </div>
+        <div style="flex:1;min-width:300px;">
+            <canvas id="lineChart"></canvas>
+        </div>
+    </div>
+
+    <h2>Receipts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Merchant</th>
+                <th>Total</th>
+                <th>Category</th>
+                <th>Comment</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in records %}
+            <tr>
+                <td>{{ r.date }}</td>
+                <td>{{ r.merchant }}</td>
+                <td>${{ "%.2f"|format(r.total) }}</td>
+                <td>{{ r.category }}</td>
+                <td>{{ r.comment or '' }}</td>
+                <td>
+                    {% if r.image_path %}
+                        <a href="/{{ r.image_path }}" target="_blank">
+                            <img src="/{{ r.image_path }}" class="thumbnail" alt="Receipt">
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6">No receipts found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        // FIXED: Use |tojson instead of |safe to properly escape JSON for JavaScript
+const chartData = JSON.parse('{{ chart_data_json|tojson }}');
+
+
+        // Bar chart
+        const ctx1 = document.getElementById('barChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: chartData.categories,
+                datasets: [{
+                    label: 'Spending by Category',
+                    data: chartData.cat_values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Line chart
+        const ctx2 = document.getElementById('lineChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: chartData.dates,
+                datasets: [{
+                    label: 'Weekly Spending',
+                    data: chartData.weekly_totals,
+                    fill: false,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

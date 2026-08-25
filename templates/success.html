@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Saved!</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
+        .card { background: #d4edda; border: 1px solid #c3e6cb; padding: 1.5rem; border-radius: 5px; }
+        .detail { margin: 0.5rem 0; }
+        .actions { margin-top: 1.5rem; }
+        .actions a { display: inline-block; margin-right: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; text-decoration: none; border-radius: 3px; }
+        .actions a.secondary { background: #6c757d; }
+    </style>
+</head>
+<body>
+    <h1>✅ Receipt Saved!</h1>
+    <div class="card">
+        <div class="detail"><strong>Merchant:</strong> {{ record.merchant }}</div>
+        <div class="detail"><strong>Date:</strong> {{ record.date }}</div>
+        <div class="detail"><strong>Total:</strong> ${{ record.total }}</div>
+        <div class="detail"><strong>Category:</strong> {{ record.category }}</div>
+        {% if record.comment %}
+        <div class="detail"><strong>Comment:</strong> {{ record.comment }}</div>
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        <a href="/">Upload Another</a>
+        <a href="/dashboard" class="secondary">View Dashboard</a>
+    </div>
+</body>
+</html>

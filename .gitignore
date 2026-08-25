@@ -1,0 +1,30 @@
+# Environment & secrets
+.env
+*.pyc
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Temporary & uploaded files
+uploads/
+images/
+results/
+results_clean/
+
+# CSV & other data
+*.csv
+*.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Sensitive data
+receipts_db.json
+aiprompt
